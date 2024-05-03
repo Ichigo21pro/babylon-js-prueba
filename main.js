@@ -24,6 +24,11 @@ const engine = new BABYLON.Engine(canvas);
 const createScene = function () {
   //metemos todo lo necesario, entre ello la escena en si con la logica de babylon
   const scene = new BABYLON.Scene(engine);
+  //
+  //añadimos la camara:
+  scene.createDefaultCameraOrLight(true, false, true);
+  const box = new BABYLON.MeshBuilder.CreateBox();
+  //
   return scene;
   //
 };
@@ -33,5 +38,10 @@ const scene = createScene();
 //actualizamos la escena
 engine.runRenderLoop(function () {
   scene.render();
+});
+//
+//actualizamos el tamaño
+window.addEventListener("resize", function () {
+  engine.resize();
 });
 ////////////////////////////////////////////////////
