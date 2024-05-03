@@ -6,6 +6,11 @@
 3.- Scene
 4.- Camara
 */
+/*
+camera :
+-  universal camera (first person game)
+- arc rotate camera (diferentes angulos)
+*/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 ///////////////////////////////////////////// imports ///////////////////////////////////////////
@@ -26,9 +31,39 @@ const createScene = async function () {
   //metemos todo lo necesario, entre ello la escena en si con la logica de babylon
   const scene = new BABYLON.Scene(engine);
   //
-  //añadimos la camara:
-  scene.createDefaultCameraOrLight(true, false, true);
+  //////////////////// camara ///////////////////
   //
+  scene.createDefaultCameraOrLight(true, false, true); // basic one
+  // other camera :
+  //scene.createDefaultLight(); //luz para poder ver
+  /*//universal camera
+  const camera = new BABYLON.UniversalCamera(
+    "MiCamara",
+    new BABYLON.Vector3(0, 5, -10),
+    scene
+  );
+  camera.attachControl(true);
+  camera.inputs.addMouseWheel();
+  camera.setTarget(BABYLON.Vector3.Zero());*/
+  /*//Arc camera :
+  const camera = new BABYLON.ArcRotateCamera(
+    "",
+    0, //rotation y (beta)
+    0, //rotation z (alpha)
+    10, //rotation x (omega)
+    new BABYLON.Vector3(0, 0, 0),
+    scene
+  );
+  camera.attachControl(true);
+  camera.setPosition(new BABYLON.Vector3(0, 0, -20));
+  camera.lowerBetaLimit = Math.PI / 4; //limits rotate
+  camera.upperBetaLimit = Math.PI / 2; //limits rotate
+  camera.lowerRadiusLimit = 20; //min distance
+  camera.upperRadiusLimit = 50; //max distance*/
+  //
+  //////////////////////////////////////////////
+  //
+  ///////////////////// elementos ////////////////
   //añadimos elementos (ejemplos en orden de Complicado - Basicos)
   //
   /*const groundFromHM = new BABYLON.MeshBuilder.CreateGroundFromHeightMap(
@@ -47,7 +82,7 @@ const createScene = async function () {
   //para que se vea los poligonos de subdivisions
   ground.material = new BABYLON.StandardMaterial();
   ground.material.wireframe = true;*/
-  /*const sphere = new BABYLON.MeshBuilder.CreateSphere(
+  const sphere = new BABYLON.MeshBuilder.CreateSphere(
     "PrimeraEsfera",
     {
       segments: 20, //segementos, los "poligonos visuales" (parece que se vea "pixelado") cuantos más cantidad más detallado el objeto
@@ -55,7 +90,18 @@ const createScene = async function () {
       diameterY: 0.4, //diametro en eje Y
     },
     scene
-  ); //esfera*/
+  ); //esfera
+  //add material to sphere :
+  const sphereMaterial = new BABYLON.StandardMaterial();
+  sphere.material = sphereMaterial;
+  //cambios:
+  // sphereMaterial.diffuseColor = new BABYLON.Color3(0, 1, 0); //color
+  // sphereMaterial.specularColor = new BABYLON.Color3(1, 0, 0); //light color
+  // sphereMaterial.ambientColor = new BABYLON.Color3(0, 1, 1); //color
+  // scene.ambientColor = new BABYLON.Color3(0, 1, 0.5); //ambient color
+  // sphereMaterial.emissiveColor = new BABYLON.Color3(0, 1, 0); //color emssive
+  sphereMaterial.diffuseTexture = new BABYLON.Texture("/wood.jpg");
+
   /*const box = new BABYLON.MeshBuilder.CreateBox("PrimerCubo", {
     size: 0.2,
     width: 0.2,
@@ -64,8 +110,11 @@ const createScene = async function () {
     faceColors: [new BABYLON.Color4(1, 0, 0, 1), BABYLON.Color3.Green()], //color de cada cara
   }); //cubo*/
   //
-  //añadimos texto (tiene que ser formato.json)
+  ////////////////////////////////////////////////
   //
+  /////////////////////// texto ///////////////////
+  //
+  /*//añadimos texto (tiene que ser formato.json)
   const fontData = await (await fetch("/Montserrat_Regular.json")).json();
   const text = BABYLON.MeshBuilder.CreateText(
     "",
@@ -76,8 +125,9 @@ const createScene = async function () {
       depth: 0.1,
       resolution: 64,
     }
-  );
+  );*/
   //
+  /////////////////////////////////////////////////
   //return
   return scene;
   //
