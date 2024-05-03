@@ -16,6 +16,8 @@ camera :
 ///////////////////////////////////////////// imports ///////////////////////////////////////////
 //
 import * as BABYLON from "@babylonjs/core";
+import "@babylonjs/loaders/gltf";
+import { Inspector } from "babylonjs-inspector";
 //
 /////////////////////////////////////// variables globales /////////////////////////////////////
 //
@@ -82,7 +84,7 @@ const createScene = async function () {
   //para que se vea los poligonos de subdivisions
   ground.material = new BABYLON.StandardMaterial();
   ground.material.wireframe = true;*/
-  const sphere = new BABYLON.MeshBuilder.CreateSphere(
+  /*const sphere = new BABYLON.MeshBuilder.CreateSphere(
     "PrimeraEsfera",
     {
       segments: 20, //segementos, los "poligonos visuales" (parece que se vea "pixelado") cuantos más cantidad más detallado el objeto
@@ -100,8 +102,7 @@ const createScene = async function () {
   // sphereMaterial.ambientColor = new BABYLON.Color3(0, 1, 1); //color
   // scene.ambientColor = new BABYLON.Color3(0, 1, 0.5); //ambient color
   // sphereMaterial.emissiveColor = new BABYLON.Color3(0, 1, 0); //color emssive
-  sphereMaterial.diffuseTexture = new BABYLON.Texture("/wood.jpg");
-
+  sphereMaterial.diffuseTexture = new BABYLON.Texture("/wood.jpg");*/
   /*const box = new BABYLON.MeshBuilder.CreateBox("PrimerCubo", {
     size: 0.2,
     width: 0.2,
@@ -110,7 +111,32 @@ const createScene = async function () {
     faceColors: [new BABYLON.Color4(1, 0, 0, 1), BABYLON.Color3.Green()], //color de cada cara
   }); //cubo*/
   //
+  //import
+  BABYLON.SceneLoader.ImportMesh(
+    "",
+    "/",
+    "Cow.gltf",
+    scene,
+    function (meshes, particleSystem, skeletons, animationGroups) {
+      const model = meshes[0];
+      model.scaling = new BABYLON.Vector3(0.25, 0.25, 0.25);
+      //
+      animationGroups[5].play(true);
+    }
+  );
+
+  //
   ////////////////////////////////////////////////
+  //
+  //////////////////// sound ////////////////////
+  //sonidos
+  /*
+  const bgMusic = new BABYLON.Sound("", "/DivKid.mp3", scene, null, {
+    loop: true,
+    autoplay: true,
+  });*/
+  //
+  ///////////////////////////////////////////////
   //
   /////////////////////// texto ///////////////////
   //
@@ -145,3 +171,5 @@ window.addEventListener("resize", function () {
   engine.resize();
 });
 ////////////////////////////////////////////////////
+
+Inspector.Show(scene, {});
