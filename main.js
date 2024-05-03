@@ -22,7 +22,7 @@ const engine = new BABYLON.Engine(canvas);
 //
 ///////////////////////////////////////////// SCENE ////////////////////////////////////////////
 //creamos la escena
-const createScene = function () {
+const createScene = async function () {
   //metemos todo lo necesario, entre ello la escena en si con la logica de babylon
   const scene = new BABYLON.Scene(engine);
   //
@@ -66,14 +66,24 @@ const createScene = function () {
   //
   //añadimos texto (tiene que ser formato.json)
   //
-
+  const fontData = await (await fetch("/Montserrat_Regular.json")).json();
+  const text = BABYLON.MeshBuilder.CreateText(
+    "",
+    "Este es mi texto",
+    fontData,
+    {
+      size: 2,
+      depth: 0.1,
+      resolution: 64,
+    }
+  );
   //
   //return
   return scene;
   //
 };
 //
-const scene = createScene();
+const scene = await createScene();
 ///////////////////////////////////////////// LOOP /////////////////////////////////////////////
 //actualizamos la escena
 engine.runRenderLoop(function () {
