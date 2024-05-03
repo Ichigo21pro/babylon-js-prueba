@@ -35,7 +35,21 @@ const createScene = async function () {
   //
   //////////////////// camara ///////////////////
   //
-  scene.createDefaultCameraOrLight(true, false, true); // basic one
+  const camera = new BABYLON.FreeCamera(
+    "camera",
+    new BABYLON.Vector3(0, 5, -10),
+    scene
+  );
+  camera.setTarget(BABYLON.Vector3.Zero());
+  camera.attachControl(canvas, true);
+  // Luz
+  const light = new BABYLON.HemisphericLight(
+    "light",
+    new BABYLON.Vector3(0, 1, 0),
+    scene
+  );
+  light.intensity = 0.7;
+  //scene.createDefaultCameraOrLight(true, false, true); // basic one
   // other camera :
   //scene.createDefaultLight(); //luz para poder ver
   /*//universal camera
@@ -66,6 +80,82 @@ const createScene = async function () {
   //////////////////////////////////////////////
   //
   ///////////////////// elementos ////////////////
+  // Piso
+  const ground = BABYLON.Mesh.CreateGround("ground", 20, 20, 2, scene);
+  // Cubo controlado por el jugador
+  const player = BABYLON.MeshBuilder.CreateBox("player", { size: 1 }, scene);
+  player.position.y = 2; // Lo colocamos sobre el piso
+  // Configuración para objetos que caen
+  const fallingObjects = [];
+  const objectFallSpeed = 0.05;
+
+  // Función para crear un nuevo objeto que cae
+  const createFallingObject = () => {
+    const box = BABYLON.MeshBuilder.CreateBox(
+      "fallingObject",
+      { size: 1 },
+      scene
+    );
+    box.position = new BABYLON.Vector3(
+      Math.random() * 20 - 10, // Aleatorio en el eje x
+      10, // Comienza por encima de la escena
+      0
+    );
+    fallingObjects.push(box);
+  };
+  // Control del jugador con las teclas
+  const inputMap = {};
+  scene.actionManager = new BABYLON.ActionManager(scene);
+  scene.actionManager.registerAction(
+    new BABYLON.ExecuteCodeAction(
+      BABYLON.ActionManager.OnKeyDownTrigger,
+      (evt) => {
+        inputMap[evt.sourceEvent.key] = evt.sourceEvent.type === "keydown";
+      }
+    )
+  );
+  scene.actionManager.registerAction(
+    new BABYLON.ExecuteCodeAction(
+      BABYLON.ActionManager.OnKeyUpTrigger,
+      (evt) => {
+        inputMap[evt.sourceEvent.key] = evt.sourceEvent.type === "keyup";
+      }
+    )
+  );
+
+  // Velocidad de movimiento del jugador
+  const playerSpeed = 0.15;
+
+  scene.onBeforeRenderObservable.add(() => {
+    // Movimiento del jugador
+    if (inputMap["a"] || inputMap["ArrowLeft"]) {
+      player.position.x -= playerSpeed;
+    }
+    if (inputMap["d"] || inputMap["ArrowRight"]) {
+      player.position.x += playerSpeed;
+    }
+
+    // Actualizar posición de objetos que caen
+    for (const object of fallingObjects) {
+      object.position.y -= objectFallSpeed;
+
+      // Verificar colisión con el jugador
+      if (object.intersectsMesh(player, false)) {
+        alert("¡Colisión! Juego terminado.");
+        engine.stopRenderLoop();
+      }
+
+      // Eliminar objetos que salgan del escenario
+      if (object.position.y < -1) {
+        object.dispose();
+        fallingObjects.shift();
+      }
+    }
+  });
+
+  // Crear objetos que caen periódicamente
+  setInterval(createFallingObject, 1000);
+
   //añadimos elementos (ejemplos en orden de Complicado - Basicos)
   //
   /*const groundFromHM = new BABYLON.MeshBuilder.CreateGroundFromHeightMap(
@@ -112,7 +202,7 @@ const createScene = async function () {
   }); //cubo*/
   //
   //import
-  BABYLON.SceneLoader.ImportMesh(
+  /*BABYLON.SceneLoader.ImportMesh(
     "",
     "/",
     "Cow.gltf",
@@ -123,7 +213,7 @@ const createScene = async function () {
       //
       animationGroups[5].play(true);
     }
-  );
+  );*/
 
   //
   ////////////////////////////////////////////////
@@ -171,5 +261,3 @@ window.addEventListener("resize", function () {
   engine.resize();
 });
 ////////////////////////////////////////////////////
-
-Inspector.Show(scene, {});
