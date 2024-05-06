@@ -85,76 +85,80 @@ const createScene = async function () {
   // Cubo controlado por el jugador
   const player = BABYLON.MeshBuilder.CreateBox("player", { size: 1 }, scene);
   player.position.y = 2; // Lo colocamos sobre el piso
-  // Configuración para objetos que caen
-  const fallingObjects = [];
-  const objectFallSpeed = 0.05;
 
-  // Función para crear un nuevo objeto que cae
-  const createFallingObject = () => {
-    const box = BABYLON.MeshBuilder.CreateBox(
-      "fallingObject",
-      { size: 1 },
-      scene
-    );
-    box.position = new BABYLON.Vector3(
-      Math.random() * 20 - 10, // Aleatorio en el eje x
-      10, // Comienza por encima de la escena
-      0
-    );
-    fallingObjects.push(box);
+  // Velocidad de movimiento
+  const speed = 0.1;
+
+  // Manejo de la entrada del teclado
+  const keys = {
+    forward: false,
+    backward: false,
+    left: false,
+    right: false,
   };
-  // Control del jugador con las teclas
-  const inputMap = {};
-  scene.actionManager = new BABYLON.ActionManager(scene);
-  scene.actionManager.registerAction(
-    new BABYLON.ExecuteCodeAction(
-      BABYLON.ActionManager.OnKeyDownTrigger,
-      (evt) => {
-        inputMap[evt.sourceEvent.key] = evt.sourceEvent.type === "keydown";
-      }
-    )
-  );
-  scene.actionManager.registerAction(
-    new BABYLON.ExecuteCodeAction(
-      BABYLON.ActionManager.OnKeyUpTrigger,
-      (evt) => {
-        inputMap[evt.sourceEvent.key] = evt.sourceEvent.type === "keyup";
-      }
-    )
-  );
 
-  // Velocidad de movimiento del jugador
-  const playerSpeed = 0.15;
-
-  scene.onBeforeRenderObservable.add(() => {
-    // Movimiento del jugador
-    if (inputMap["a"] || inputMap["ArrowLeft"]) {
-      player.position.x -= playerSpeed;
+  // Escuchar eventos de teclado
+  window.addEventListener("keydown", (event) => {
+    switch (event.key.toLowerCase()) {
+      case "s":
+        keys.forward = true;
+        break;
+      case "w":
+        keys.backward = true;
+        break;
+      case "a":
+        keys.left = true;
+        break;
+      case "d":
+        keys.right = true;
+        break;
     }
-    if (inputMap["d"] || inputMap["ArrowRight"]) {
-      player.position.x += playerSpeed;
+  });
+
+  window.addEventListener("keyup", (event) => {
+    switch (event.key.toLowerCase()) {
+      case "s":
+        keys.forward = false;
+        break;
+      case "w":
+        keys.backward = false;
+        break;
+      case "a":
+        keys.left = false;
+        break;
+      case "d":
+        keys.right = false;
+        break;
     }
+  });
 
-    // Actualizar posición de objetos que caen
-    for (const object of fallingObjects) {
-      object.position.y -= objectFallSpeed;
+  // Función para actualizar la posición del cubo en cada frame
+  scene.registerBeforeRender(() => {
+    if (keys.forward) {
+      player.position.z -= speed;
+    }
+    if (keys.backward) {
+      player.position.z += speed;
+    }
+    if (keys.left) {
+      player.position.x -= speed;
+    }
+    if (keys.right) {
+      player.position.x += speed;
+    }
+  });
 
-      // Verificar colisión con el jugador
+  /*// Verificar colisión con el jugador
       if (object.intersectsMesh(player, false)) {
-        alert("¡Colisión! Juego terminado.");
-        engine.stopRenderLoop();
+        //alert("¡Colisión! Juego terminado.");
+        //engine.stopRenderLoop();
       }
 
       // Eliminar objetos que salgan del escenario
       if (object.position.y < -1) {
         object.dispose();
         fallingObjects.shift();
-      }
-    }
-  });
-
-  // Crear objetos que caen periódicamente
-  setInterval(createFallingObject, 1000);
+      }*/
 
   //añadimos elementos (ejemplos en orden de Complicado - Basicos)
   //
