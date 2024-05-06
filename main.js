@@ -38,15 +38,15 @@ const createScene = () => {
     //
     const camera = new BABYLON.FreeCamera(
       "camera",
-      new BABYLON.Vector3(0, 5, -10),
+      new BABYLON.Vector3(0, 10, -20), // La cámara está por encima y detrás del jugador
       scene
     );
-    camera.setTarget(BABYLON.Vector3.Zero());
-    camera.attachControl(canvas, true);
+    camera.setTarget(BABYLON.Vector3.Zero()); // Apunta hacia el centro
+    camera.attachControl(canvas, true); // Habilitar control de la cámara
     // Luz
     const light = new BABYLON.HemisphericLight(
       "light",
-      new BABYLON.Vector3(0, 1, 0),
+      new BABYLON.Vector3(3, 2, 5),
       scene
     );
     light.intensity = 0.7;
@@ -88,7 +88,7 @@ const createScene = () => {
     player.position.y = 2; // Lo colocamos sobre el piso
 
     // Velocidad de movimiento
-    const speed = 0.1;
+    const speed = 0.05;
 
     // Manejo de la entrada del teclado
     const keys = {
@@ -147,6 +147,23 @@ const createScene = () => {
       if (keys.right) {
         player.position.x += speed;
       }
+      // Ajustar la posición de la cámara para seguir al jugador
+      const followDistance = -15; // Distancia desde el jugador hacia la cámara
+      const height = 10; // Altura de la cámara
+      const sideOffset = -3; // Desplazamiento lateral para dar giro
+      const interpolationFactor = 0.1; // Controlar la suavidad del movimiento
+
+      camera.position.x +=
+        (player.position.x + sideOffset - camera.position.x) *
+        interpolationFactor;
+      camera.position.y +=
+        (player.position.y + height - camera.position.y) * interpolationFactor;
+      camera.position.z +=
+        (player.position.z + followDistance - camera.position.z) *
+        interpolationFactor;
+
+      // Cambiar el objetivo de la cámara para que gire ligeramente hacia el jugador
+      camera.setTarget(player.position);
     });
 
     /*// Verificar colisión con el jugador
