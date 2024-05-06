@@ -16,7 +16,8 @@ camera :
 ///////////////////////////////////////////// imports ///////////////////////////////////////////
 //
 import * as BABYLON from "@babylonjs/core";
-import "@babylonjs/loaders/gltf";
+import "@babylonjs/loaders";
+import { ActionManager, ExecuteCodeAction, SceneLoader } from "babylonjs";
 import { Inspector } from "babylonjs-inspector";
 //
 /////////////////////////////////////// variables globales /////////////////////////////////////
@@ -36,13 +37,17 @@ const createScene = () => {
     //
     //////////////////// camara ///////////////////
     //
-    const camera = new BABYLON.FreeCamera(
+    const camera = new BABYLON.ArcRotateCamera(
       "camera",
-      new BABYLON.Vector3(0, 10, -20), // La cámara está por encima y detrás del jugador
+      0,
+      1,
+      10,
+      new BABYLON.Vector3(0, 0, 0),
       scene
     );
     camera.setTarget(BABYLON.Vector3.Zero()); // Apunta hacia el centro
     camera.attachControl(canvas, true); // Habilitar control de la cámara
+    camera.wheelPrecision = 10;
     // Luz
     const light = new BABYLON.HemisphericLight(
       "light",
@@ -79,92 +84,147 @@ const createScene = () => {
   camera.upperRadiusLimit = 50; //max distance*/
     //
     //////////////////////////////////////////////
+
     //
     ///////////////////// elementos ////////////////
     // Piso
-    const ground = BABYLON.Mesh.CreateGround("ground", 20, 20, 2, scene);
-    // Cubo controlado por el jugador
-    const player = BABYLON.MeshBuilder.CreateBox("player", { size: 1 }, scene);
-    player.position.y = 2; // Lo colocamos sobre el piso
+    const ground = BABYLON.Mesh.CreateGround("ground", 50, 50, 2, scene);
 
-    // Velocidad de movimiento
-    const speed = 0.05;
+    // player
+    const loadModel = async () => {
+      const model = await SceneLoader.ImportMeshAsync(
+        null,
+        "https://assets.babylonjs.com/meshes/",
+        "HVGirl.glb",
+        scene
+      );
+      const realPlayer = model.meshes[0];
+      realPlayer.scaling.setAll(0.1);
 
-    // Manejo de la entrada del teclado
-    const keys = {
-      forward: false,
-      backward: false,
-      left: false,
-      right: false,
+      const camera = scene.activeCamera;
+      camera.setTarget(realPlayer);
+
+      // Animaciones
+      const walkForwardAnimation = scene.getAnimationGroupByName("Walking");
+      const walkBackAnimation = scene.getAnimationGroupByName("WalkingBack");
+      const idleAnimation = scene.getAnimationGroupByName("Idle");
+      const danceAnimation = scene.getAnimationGroupByName("Samba");
+
+      // Velocidades
+      const playerWalkSpeed = 0.1;
+      const playerRunSpeed = 0.3;
+      const playerSpeedBackwards = 0.05;
+      const playerRotationSpeed = 0.05;
+
+      // Manejo de teclas
+      const keyStatus = {
+        w: false,
+        s: false,
+        a: false,
+        d: false,
+        shift: false,
+        b: false,
+      };
+
+      scene.actionManager = new ActionManager(scene);
+
+      const registerKeyPress = (key) => {
+        return new ExecuteCodeAction(
+          ActionManager.OnKeyDownTrigger,
+          (event) => {
+            const pressedKey = event.sourceEvent.key.toLowerCase();
+            if (pressedKey === key) {
+              keyStatus[key] = true;
+            }
+          }
+        );
+      };
+
+      const registerKeyRelease = (key) => {
+        return new ExecuteCodeAction(ActionManager.OnKeyUpTrigger, (event) => {
+          const releasedKey = event.sourceEvent.key.toLowerCase();
+          if (releasedKey === key) {
+            keyStatus[key] = false;
+          }
+        });
+      };
+
+      ["w", "s", "a", "d", "shift", "b"].forEach((key) => {
+        scene.actionManager.registerAction(registerKeyPress(key));
+        scene.actionManager.registerAction(registerKeyRelease(key));
+      });
+
+      scene.onBeforeRenderObservable.add(() => {
+        let moving = false;
+
+        // Determinar si el jugador está moviéndose
+        if (keyStatus.w || keyStatus.s || keyStatus.a || keyStatus.d) {
+          moving = true;
+
+          if (keyStatus.w) {
+            walkForwardAnimation.start(
+              true,
+              keyStatus.shift ? 2 : 1,
+              walkForwardAnimation.from,
+              walkForwardAnimation.to,
+              false
+            );
+          } else if (keyStatus.s) {
+            walkBackAnimation.start(
+              true,
+              1,
+              walkBackAnimation.from,
+              walkBackAnimation.to,
+              false
+            );
+          }
+
+          if (keyStatus.a) {
+            realPlayer.rotate(BABYLON.Vector3.Up(), -playerRotationSpeed);
+          }
+
+          if (keyStatus.d) {
+            realPlayer.rotate(BABYLON.Vector3.Up(), playerRotationSpeed);
+          }
+
+          if (keyStatus.b) {
+            danceAnimation.start(
+              true,
+              1,
+              danceAnimation.from,
+              danceAnimation.to,
+              false
+            );
+          }
+        }
+
+        // Movimiento del jugador según la velocidad y la tecla presionada
+        let speed = 0;
+        if (keyStatus.w) {
+          speed = keyStatus.shift ? playerRunSpeed : playerWalkSpeed;
+        } else if (keyStatus.s) {
+          speed = -playerSpeedBackwards;
+        }
+
+        realPlayer.moveWithCollisions(realPlayer.forward.scale(speed));
+
+        // Si no se está moviendo, detener todas las animaciones excepto la de Idle
+        if (!moving) {
+          walkForwardAnimation.stop();
+          walkBackAnimation.stop();
+          danceAnimation.stop();
+          idleAnimation.start(
+            true,
+            1,
+            idleAnimation.from,
+            idleAnimation.to,
+            false
+          );
+        }
+      });
     };
-
-    // Escuchar eventos de teclado
-    window.addEventListener("keydown", (event) => {
-      switch (event.key.toLowerCase()) {
-        case "s":
-          keys.forward = true;
-          break;
-        case "w":
-          keys.backward = true;
-          break;
-        case "a":
-          keys.left = true;
-          break;
-        case "d":
-          keys.right = true;
-          break;
-      }
-    });
-
-    window.addEventListener("keyup", (event) => {
-      switch (event.key.toLowerCase()) {
-        case "s":
-          keys.forward = false;
-          break;
-        case "w":
-          keys.backward = false;
-          break;
-        case "a":
-          keys.left = false;
-          break;
-        case "d":
-          keys.right = false;
-          break;
-      }
-    });
-
-    // Función para actualizar la posición del cubo en cada frame
-    scene.registerBeforeRender(() => {
-      if (keys.forward) {
-        player.position.z -= speed;
-      }
-      if (keys.backward) {
-        player.position.z += speed;
-      }
-      if (keys.left) {
-        player.position.x -= speed;
-      }
-      if (keys.right) {
-        player.position.x += speed;
-      }
-      // Ajustar la posición de la cámara para seguir al jugador
-      const followDistance = -15; // Distancia desde el jugador hacia la cámara
-      const height = 10; // Altura de la cámara
-      const sideOffset = -3; // Desplazamiento lateral para dar giro
-      const interpolationFactor = 0.1; // Controlar la suavidad del movimiento
-
-      camera.position.x +=
-        (player.position.x + sideOffset - camera.position.x) *
-        interpolationFactor;
-      camera.position.y +=
-        (player.position.y + height - camera.position.y) * interpolationFactor;
-      camera.position.z +=
-        (player.position.z + followDistance - camera.position.z) *
-        interpolationFactor;
-
-      // Cambiar el objetivo de la cámara para que gire ligeramente hacia el jugador
-      camera.setTarget(player.position);
-    });
+    loadModel();
+    ///////////////////////////////////////////////////
 
     /*// Verificar colisión con el jugador
       if (object.intersectsMesh(player, false)) {
