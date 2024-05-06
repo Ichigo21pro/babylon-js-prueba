@@ -19,6 +19,7 @@ import * as BABYLON from "@babylonjs/core";
 import "@babylonjs/loaders";
 import { ActionManager, ExecuteCodeAction, SceneLoader } from "babylonjs";
 import { Inspector } from "babylonjs-inspector";
+
 //
 /////////////////////////////////////// variables globales /////////////////////////////////////
 //
@@ -89,6 +90,22 @@ const createScene = () => {
     ///////////////////// elementos ////////////////
     // Piso
     const ground = BABYLON.Mesh.CreateGround("ground", 50, 50, 2, scene);
+    const groundMaterial = new BABYLON.StandardMaterial(
+      "groundMaterial",
+      scene
+    );
+    const groundTexture = new BABYLON.Texture(
+      "/public/Tiles_04_normalOgl.jpg",
+      scene
+    ); // Cambia esto por la ruta de tu textura
+
+    // Ajustes de textura
+    groundTexture.uScale = 10; // Ajustar escala horizontal
+    groundTexture.vScale = 10; // Ajustar escala vertical
+
+    groundMaterial.diffuseTexture = groundTexture; // Asignar la textura al material
+
+    ground.material = groundMaterial; // Asignar el material al piso
 
     // player
     const loadModel = async () => {
@@ -186,16 +203,15 @@ const createScene = () => {
           if (keyStatus.d) {
             realPlayer.rotate(BABYLON.Vector3.Up(), playerRotationSpeed);
           }
-
-          if (keyStatus.b) {
-            danceAnimation.start(
-              true,
-              1,
-              danceAnimation.from,
-              danceAnimation.to,
-              false
-            );
-          }
+        }
+        if (keyStatus.b) {
+          danceAnimation.start(
+            true,
+            1,
+            danceAnimation.from,
+            danceAnimation.to,
+            false
+          );
         }
 
         // Movimiento del jugador según la velocidad y la tecla presionada
