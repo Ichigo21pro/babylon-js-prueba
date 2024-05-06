@@ -29,30 +29,31 @@ const engine = new BABYLON.Engine(canvas);
 //
 ///////////////////////////////////////////// SCENE ////////////////////////////////////////////
 //creamos la escena
-const createScene = async function () {
-  //metemos todo lo necesario, entre ello la escena en si con la logica de babylon
-  const scene = new BABYLON.Scene(engine);
-  //
-  //////////////////// camara ///////////////////
-  //
-  const camera = new BABYLON.FreeCamera(
-    "camera",
-    new BABYLON.Vector3(0, 5, -10),
-    scene
-  );
-  camera.setTarget(BABYLON.Vector3.Zero());
-  camera.attachControl(canvas, true);
-  // Luz
-  const light = new BABYLON.HemisphericLight(
-    "light",
-    new BABYLON.Vector3(0, 1, 0),
-    scene
-  );
-  light.intensity = 0.7;
-  //scene.createDefaultCameraOrLight(true, false, true); // basic one
-  // other camera :
-  //scene.createDefaultLight(); //luz para poder ver
-  /*//universal camera
+const createScene = () => {
+  return new Promise((resolve) => {
+    //metemos todo lo necesario, entre ello la escena en si con la logica de babylon
+    const scene = new BABYLON.Scene(engine);
+    //
+    //////////////////// camara ///////////////////
+    //
+    const camera = new BABYLON.FreeCamera(
+      "camera",
+      new BABYLON.Vector3(0, 5, -10),
+      scene
+    );
+    camera.setTarget(BABYLON.Vector3.Zero());
+    camera.attachControl(canvas, true);
+    // Luz
+    const light = new BABYLON.HemisphericLight(
+      "light",
+      new BABYLON.Vector3(0, 1, 0),
+      scene
+    );
+    light.intensity = 0.7;
+    //scene.createDefaultCameraOrLight(true, false, true); // basic one
+    // other camera :
+    //scene.createDefaultLight(); //luz para poder ver
+    /*//universal camera
   const camera = new BABYLON.UniversalCamera(
     "MiCamara",
     new BABYLON.Vector3(0, 5, -10),
@@ -61,7 +62,7 @@ const createScene = async function () {
   camera.attachControl(true);
   camera.inputs.addMouseWheel();
   camera.setTarget(BABYLON.Vector3.Zero());*/
-  /*//Arc camera :
+    /*//Arc camera :
   const camera = new BABYLON.ArcRotateCamera(
     "",
     0, //rotation y (beta)
@@ -76,79 +77,79 @@ const createScene = async function () {
   camera.upperBetaLimit = Math.PI / 2; //limits rotate
   camera.lowerRadiusLimit = 20; //min distance
   camera.upperRadiusLimit = 50; //max distance*/
-  //
-  //////////////////////////////////////////////
-  //
-  ///////////////////// elementos ////////////////
-  // Piso
-  const ground = BABYLON.Mesh.CreateGround("ground", 20, 20, 2, scene);
-  // Cubo controlado por el jugador
-  const player = BABYLON.MeshBuilder.CreateBox("player", { size: 1 }, scene);
-  player.position.y = 2; // Lo colocamos sobre el piso
+    //
+    //////////////////////////////////////////////
+    //
+    ///////////////////// elementos ////////////////
+    // Piso
+    const ground = BABYLON.Mesh.CreateGround("ground", 20, 20, 2, scene);
+    // Cubo controlado por el jugador
+    const player = BABYLON.MeshBuilder.CreateBox("player", { size: 1 }, scene);
+    player.position.y = 2; // Lo colocamos sobre el piso
 
-  // Velocidad de movimiento
-  const speed = 0.1;
+    // Velocidad de movimiento
+    const speed = 0.1;
 
-  // Manejo de la entrada del teclado
-  const keys = {
-    forward: false,
-    backward: false,
-    left: false,
-    right: false,
-  };
+    // Manejo de la entrada del teclado
+    const keys = {
+      forward: false,
+      backward: false,
+      left: false,
+      right: false,
+    };
 
-  // Escuchar eventos de teclado
-  window.addEventListener("keydown", (event) => {
-    switch (event.key.toLowerCase()) {
-      case "s":
-        keys.forward = true;
-        break;
-      case "w":
-        keys.backward = true;
-        break;
-      case "a":
-        keys.left = true;
-        break;
-      case "d":
-        keys.right = true;
-        break;
-    }
-  });
+    // Escuchar eventos de teclado
+    window.addEventListener("keydown", (event) => {
+      switch (event.key.toLowerCase()) {
+        case "s":
+          keys.forward = true;
+          break;
+        case "w":
+          keys.backward = true;
+          break;
+        case "a":
+          keys.left = true;
+          break;
+        case "d":
+          keys.right = true;
+          break;
+      }
+    });
 
-  window.addEventListener("keyup", (event) => {
-    switch (event.key.toLowerCase()) {
-      case "s":
-        keys.forward = false;
-        break;
-      case "w":
-        keys.backward = false;
-        break;
-      case "a":
-        keys.left = false;
-        break;
-      case "d":
-        keys.right = false;
-        break;
-    }
-  });
+    window.addEventListener("keyup", (event) => {
+      switch (event.key.toLowerCase()) {
+        case "s":
+          keys.forward = false;
+          break;
+        case "w":
+          keys.backward = false;
+          break;
+        case "a":
+          keys.left = false;
+          break;
+        case "d":
+          keys.right = false;
+          break;
+      }
+    });
 
-  // Función para actualizar la posición del cubo en cada frame
-  scene.registerBeforeRender(() => {
-    if (keys.forward) {
-      player.position.z -= speed;
-    }
-    if (keys.backward) {
-      player.position.z += speed;
-    }
-    if (keys.left) {
-      player.position.x -= speed;
-    }
-    if (keys.right) {
-      player.position.x += speed;
-    }
-  });
+    // Función para actualizar la posición del cubo en cada frame
+    scene.registerBeforeRender(() => {
+      if (keys.forward) {
+        player.position.z -= speed;
+      }
+      if (keys.backward) {
+        player.position.z += speed;
+      }
+      if (keys.left) {
+        player.position.x -= speed;
+      }
+      if (keys.right) {
+        player.position.x += speed;
+      }
+    });
 
-  /*// Verificar colisión con el jugador
+    /*// Verificar colisión con el jugador
       if (object.intersectsMesh(player, false)) {
         //alert("¡Colisión! Juego terminado.");
         //engine.stopRenderLoop();
@@ -160,16 +161,16 @@ const createScene = async function () {
         fallingObjects.shift();
       }*/
 
-  //añadimos elementos (ejemplos en orden de Complicado - Basicos)
-  //
-  /*const groundFromHM = new BABYLON.MeshBuilder.CreateGroundFromHeightMap(
+    //añadimos elementos (ejemplos en orden de Complicado - Basicos)
+    //
+    /*const groundFromHM = new BABYLON.MeshBuilder.CreateGroundFromHeightMap(
     "PrimerMapaTextura",
     "/heightmap.png",
     { height: 10, width: 10, subdivisions: 50, maxHeight: 2 }
   );
   groundFromHM.material = new BABYLON.StandardMaterial();
   groundFromHM.material.wireframe = true;*/
-  /*const ground = new BABYLON.MeshBuilder.CreateGround("PrimerSuelo", {
+    /*const ground = new BABYLON.MeshBuilder.CreateGround("PrimerSuelo", {
     height: 10,
     width: 10,
     subdivisions: 5, //poligonos visuales (no visible a no ser que se aplique lo de abajo)
@@ -178,7 +179,7 @@ const createScene = async function () {
   //para que se vea los poligonos de subdivisions
   ground.material = new BABYLON.StandardMaterial();
   ground.material.wireframe = true;*/
-  /*const sphere = new BABYLON.MeshBuilder.CreateSphere(
+    /*const sphere = new BABYLON.MeshBuilder.CreateSphere(
     "PrimeraEsfera",
     {
       segments: 20, //segementos, los "poligonos visuales" (parece que se vea "pixelado") cuantos más cantidad más detallado el objeto
@@ -197,16 +198,16 @@ const createScene = async function () {
   // scene.ambientColor = new BABYLON.Color3(0, 1, 0.5); //ambient color
   // sphereMaterial.emissiveColor = new BABYLON.Color3(0, 1, 0); //color emssive
   sphereMaterial.diffuseTexture = new BABYLON.Texture("/wood.jpg");*/
-  /*const box = new BABYLON.MeshBuilder.CreateBox("PrimerCubo", {
+    /*const box = new BABYLON.MeshBuilder.CreateBox("PrimerCubo", {
     size: 0.2,
     width: 0.2,
     height: 0.3,
     depth: 0.4,
     faceColors: [new BABYLON.Color4(1, 0, 0, 1), BABYLON.Color3.Green()], //color de cada cara
   }); //cubo*/
-  //
-  //import
-  /*BABYLON.SceneLoader.ImportMesh(
+    //
+    //import
+    /*BABYLON.SceneLoader.ImportMesh(
     "",
     "/",
     "Cow.gltf",
@@ -219,22 +220,22 @@ const createScene = async function () {
     }
   );*/
 
-  //
-  ////////////////////////////////////////////////
-  //
-  //////////////////// sound ////////////////////
-  //sonidos
-  /*
+    //
+    ////////////////////////////////////////////////
+    //
+    //////////////////// sound ////////////////////
+    //sonidos
+    /*
   const bgMusic = new BABYLON.Sound("", "/DivKid.mp3", scene, null, {
     loop: true,
     autoplay: true,
   });*/
-  //
-  ///////////////////////////////////////////////
-  //
-  /////////////////////// texto ///////////////////
-  //
-  /*//añadimos texto (tiene que ser formato.json)
+    //
+    ///////////////////////////////////////////////
+    //
+    /////////////////////// texto ///////////////////
+    //
+    /*//añadimos texto (tiene que ser formato.json)
   const fontData = await (await fetch("/Montserrat_Regular.json")).json();
   const text = BABYLON.MeshBuilder.CreateText(
     "",
@@ -246,22 +247,26 @@ const createScene = async function () {
       resolution: 64,
     }
   );*/
-  //
-  /////////////////////////////////////////////////
-  //return
-  return scene;
-  //
+    //
+    /////////////////////////////////////////////////
+    //return
+    resolve(scene); // Devuelve la escena una vez que esté lista
+    //
+  });
 };
 //
-const scene = await createScene();
+const scene = createScene();
 ///////////////////////////////////////////// LOOP /////////////////////////////////////////////
 //actualizamos la escena
-engine.runRenderLoop(function () {
-  scene.render();
-});
-///////////////////////////////////////////// RESIZE ///////////////////////////////////////////
-//actualizamos el tamaño
-window.addEventListener("resize", function () {
-  engine.resize();
+// Crear la escena y configurar el bucle de renderizado
+createScene().then((scene) => {
+  engine.runRenderLoop(() => {
+    scene.render(); // Asegúrate de que `scene` es una instancia de `BABYLON.Scene`
+  });
+  ///////////////////////////////////////////// RESIZE ///////////////////////////////////////////
+  //actualizamos el tamaño
+  window.addEventListener("resize", () => {
+    engine.resize(); // Ajustar el tamaño del canvas al redimensionar la ventana
+  });
 });
 ////////////////////////////////////////////////////
