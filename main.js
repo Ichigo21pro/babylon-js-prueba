@@ -89,23 +89,46 @@ const createScene = () => {
     //
     ///////////////////// elementos ////////////////
     // Piso
-    const ground = BABYLON.Mesh.CreateGround("ground", 50, 50, 2, scene);
+    const ground = BABYLON.Mesh.CreateGround("ground", 10000, 10000, 2, scene);
     const groundMaterial = new BABYLON.StandardMaterial(
       "groundMaterial",
       scene
     );
     const groundTexture = new BABYLON.Texture(
-      "/public/Tiles_04_normalOgl.jpg",
+      "/public/groundTexture/Tiles_04_basecolor.jpg",
       scene
     ); // Cambia esto por la ruta de tu textura
 
     // Ajustes de textura
-    groundTexture.uScale = 10; // Ajustar escala horizontal
-    groundTexture.vScale = 10; // Ajustar escala vertical
+    groundTexture.uScale = 1200; // Ajustar escala horizontal
+    groundTexture.vScale = 1200; // Ajustar escala vertical
 
     groundMaterial.diffuseTexture = groundTexture; // Asignar la textura al material
 
     ground.material = groundMaterial; // Asignar el material al piso
+
+    // Cargar el skybox
+    const loadSkybox = async () => {
+      const skyboxMesh = await SceneLoader.ImportMeshAsync(
+        null,
+        "/public/sky/",
+        "sky.glb",
+        scene
+      );
+
+      const skybox = skyboxMesh.meshes[0];
+      skybox.scaling.setAll(1000); // Escalar para cubrir toda la escena
+
+      // Asegurarse de que el skybox no tenga interacciones ni colisiones
+      skybox.isPickable = false; // No ser seleccionable
+      skybox.checkCollisions = false; // Sin colisiones
+      skybox.receiveShadows = false; // No recibir sombras
+      skybox.doNotSyncBoundingInfo = true; // No sincronizar información de límites
+
+      return skybox;
+    };
+
+    loadSkybox(); // Cargar el skybox al inicio
 
     // player
     const loadModel = async () => {
@@ -116,7 +139,7 @@ const createScene = () => {
         scene
       );
       const realPlayer = model.meshes[0];
-      realPlayer.scaling.setAll(0.1);
+      realPlayer.scaling.setAll(0.4);
 
       const camera = scene.activeCamera;
       camera.setTarget(realPlayer);
@@ -348,6 +371,7 @@ const createScene = () => {
   });
 };
 //
+
 const scene = createScene();
 ///////////////////////////////////////////// LOOP /////////////////////////////////////////////
 //actualizamos la escena
