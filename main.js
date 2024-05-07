@@ -371,8 +371,9 @@ const createScene = () => {
           s: false,
           a: false,
           d: false,
-          space: false,
+          [" "]: false,
           b: false,
+          shift: false,
         };
 
         scene.actionManager = new ActionManager(scene);
@@ -401,7 +402,7 @@ const createScene = () => {
           );
         };
 
-        ["w", "s", "a", "d", "space", "b"].forEach((key) => {
+        ["w", "s", "a", "d", " ", "b", "shift"].forEach((key) => {
           scene.actionManager.registerAction(registerKeyPress(key));
           scene.actionManager.registerAction(registerKeyRelease(key));
         });
@@ -416,7 +417,8 @@ const createScene = () => {
             keyStatus.a ||
             keyStatus.d ||
             keyStatus.b ||
-            keyStatus.space
+            keyStatus[" "] ||
+            keyStatus.shift
           ) {
             moving = true;
 
@@ -476,9 +478,20 @@ const createScene = () => {
             if (keyStatus.b) {
               dance.start(true, 1, dance.from, dance.to, false);
             }
-            if (keyStatus.space) {
-              jump.start(false, 1, jump.from, jump.to, false);
-            }
+          }
+
+          if (keyStatus[" "]) {
+            console.log("Salto");
+            jump.start(false, 1, jump.from, jump.to, false);
+            direction = new BABYLON.Vector3(0, 1, 0); // Dirección hacia adelante
+            ghost.rotation.y = 0; // Orientación hacia atrás
+            ghost.position.addInPlace(direction.scale(0.1)); // Mover el modelo
+          }
+          if (keyStatus.shift) {
+            jump.start(false, 1, jump.from, jump.to, false);
+            direction = new BABYLON.Vector3(0, 1, 0); // Dirección hacia adelante
+            ghost.rotation.y = 0; // Orientación hacia atrás
+            ghost.position.addInPlace(direction.scale(-0.1)); // Mover el modelo
           }
           // Si no se está moviendo, detener todas las animaciones excepto la de Idle
           if (!moving) {
@@ -600,7 +613,6 @@ const createScene = () => {
 };
 //
 
-const scene = createScene();
 ///////////////////////////////////////////// LOOP /////////////////////////////////////////////
 //actualizamos la escena
 // Crear la escena y configurar el bucle de renderizado
