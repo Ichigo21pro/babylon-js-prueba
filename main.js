@@ -292,6 +292,7 @@ const createScene = () => {
     // Variables para el estado del personaje
     var isWalking = false;
     var isJumping = false;
+
     // Variables para la dirección del personaje
     var direction = new BABYLON.Vector3(0, 0, 1); // Dirección inicial (hacia adelante)
 
@@ -353,15 +354,17 @@ const createScene = () => {
         camera.setTarget(ghost);
         // Reproducir una animación específica
         // control de personaje
-        //inicializar idle
-        if (idle) {
-          idle.start(true); // Reproducir en bucle
-        }
+
         // Función para detener todas las animaciones
         function stopAllAnimations() {
           animationGroups.forEach((animationGroup) => {
             animationGroup.stop();
           });
+        }
+
+        //inicializar idle
+        if (idle) {
+          idle.start(true); // Reproducir en bucle
         }
 
         var moveSpeed = 0.1;
@@ -413,6 +416,8 @@ const createScene = () => {
             // Lógica para el salto
           }
           if (keysDown["c"]) {
+            // bailar
+            stopAllAnimations();
             dance.start(true);
           }
         });
@@ -425,9 +430,6 @@ const createScene = () => {
           ) {
             // Si no se presiona ninguna tecla de movimiento
             stopAllAnimations();
-            if (idle) {
-              idle.start(true); // Reproducir "idle" en bucle
-            }
           }
         });
 
