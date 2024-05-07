@@ -482,10 +482,16 @@ const createScene = () => {
 
           if (keyStatus[" "]) {
             console.log("Salto");
-            jump.start(false, 1, jump.from, jump.to, false);
+
             direction = new BABYLON.Vector3(0, 1, 0); // Dirección hacia adelante
             ghost.rotation.y = 0; // Orientación hacia atrás
             ghost.position.addInPlace(direction.scale(0.1)); // Mover el modelo
+            if (!isJumping) {
+              jump.start(false, 1, jump.from, jump.to, false);
+              isJumping = true;
+            }
+          } else {
+            isJumping = false;
           }
           if (keyStatus.shift) {
             jump.start(false, 1, jump.from, jump.to, false);
