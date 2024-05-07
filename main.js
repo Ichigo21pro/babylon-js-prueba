@@ -17,7 +17,12 @@ camera :
 //
 import * as BABYLON from "@babylonjs/core";
 import "@babylonjs/loaders";
-import { ActionManager, ExecuteCodeAction, SceneLoader } from "babylonjs";
+import {
+  ActionManager,
+  AnimationGroup,
+  ExecuteCodeAction,
+  SceneLoader,
+} from "babylonjs";
 import { Inspector } from "babylonjs-inspector";
 
 //
@@ -131,7 +136,8 @@ const createScene = () => {
     loadSkybox(); // Cargar el skybox al inicio
 
     // player
-    const loadModel = async () => {
+    /*const loadModel = async () => {
+
       const model = await SceneLoader.ImportMeshAsync(
         null,
         "https://assets.babylonjs.com/meshes/",
@@ -262,7 +268,169 @@ const createScene = () => {
         }
       });
     };
-    loadModel();
+    loadModel();*/
+    //fantasma
+
+    // Cargar el modelo GLTF
+    // Crear variables para cada animación
+    var biteFront,
+      biteInPlace,
+      dance,
+      death,
+      hitRecieve,
+      idle,
+      jump,
+      no,
+      walk,
+      yes;
+    // Variables para el estado del personaje
+    var isWalking = false;
+    var isJumping = false;
+    // Variables para la dirección del personaje
+    var direction = new BABYLON.Vector3(0, 0, 1); // Dirección inicial (hacia adelante)
+
+    BABYLON.SceneLoader.ImportMesh(
+      "",
+      "/public/",
+      "Ghost.gltf",
+      scene,
+      function (newMeshes, particleSystems, skeletons, animationGroups) {
+        // // Asegúrate de incluir todos estos parámetros
+        // console.log("Animaciones disponibles:", animationGroups);
+
+        // // Reproducir todas las animaciones disponibles
+        // animationGroups.forEach(function (animationGroup) {
+        //   animationGroup.start(true); // El parámetro true indica que se repiten
+        // });
+
+        // Asignar animaciones a variables
+        animationGroups.forEach((animationGroup) => {
+          switch (animationGroup.name) {
+            case "Bite_Front":
+              biteFront = animationGroup;
+              break;
+            case "Bite_InPlace":
+              biteInPlace = animationGroup;
+              break;
+            case "Dance":
+              dance = animationGroup;
+              break;
+            case "Death":
+              death = animationGroup;
+              break;
+            case "HitRecieve":
+              hitRecieve = animationGroup;
+              break;
+            case "Idle":
+              idle = animationGroup;
+              break;
+            case "Jump":
+              jump = animationGroup;
+              break;
+            case "No":
+              no = animationGroup;
+              break;
+            case "Walk":
+              walk = animationGroup;
+              break;
+            case "Yes":
+              yes = animationGroup;
+              break;
+          }
+        });
+
+        // Ajustar la posición del modelo
+        var ghost = newMeshes[0]; // La malla principal del modelo
+        ghost.position = new BABYLON.Vector3(0, 2, 0); // Posición inicial
+        ghost.rotation = new BABYLON.Vector3(0, 0, 0); // Rotación inicial
+
+        // Reproducir una animación específica
+        // control de personaje
+        //inicializar idle
+        if (idle) {
+          idle.start(true); // Reproducir en bucle
+        }
+        // Función para detener todas las animaciones
+        function stopAllAnimations() {
+          animationGroups.forEach((animationGroup) => {
+            animationGroup.stop();
+          });
+        }
+
+        var moveSpeed = 0.1;
+        // Eventos de teclado para controlar el personaje
+        // Eventos de teclado para controlar el personaje
+        var keysDown = {};
+
+        window.addEventListener("keydown", function (event) {
+          keysDown[event.key] = true;
+
+          if (walk) {
+            stopAllAnimations();
+            walk.start(true); // Reproducir "walk" en bucle
+          }
+
+          if (keysDown["w"] || keysDown["W"]) {
+            // Hacia adelante
+            direction = new BABYLON.Vector3(0, 0, 1); // Dirección hacia adelante
+            ghost.rotation.y = 0; // Orientación hacia atrás
+            ghost.position.addInPlace(direction.scale(-moveSpeed)); // Mover el modelo
+          }
+
+          if (keysDown["a"] || keysDown["A"]) {
+            // Hacia la izquierda
+            direction = new BABYLON.Vector3(-1, 0, 0); // Dirección hacia la izquierda
+            ghost.rotation.y = -Math.PI / 2; // Rotar hacia la derecha
+            ghost.position.addInPlace(direction.scale(-moveSpeed)); // Mover el modelo
+          }
+
+          if (keysDown["s"] || keysDown["S"]) {
+            // Hacia atrás
+            direction = new BABYLON.Vector3(0, 0, -1); // Dirección hacia atrás
+            ghost.rotation.y = -Math.PI; // Orientación hacia adelante
+            ghost.position.addInPlace(direction.scale(-moveSpeed)); // Mover el modelo
+          }
+
+          if (keysDown["d"] || keysDown["D"]) {
+            // Hacia la derecha
+            direction = new BABYLON.Vector3(1, 0, 0); // Dirección hacia la derecha
+            ghost.rotation.y = Math.PI / 2; // Apuntar hacia la izquierda
+            ghost.position.addInPlace(direction.scale(-moveSpeed)); // Mover el modelo
+          }
+          if (keysDown[" "]) {
+            // Saltar
+            stopAllAnimations();
+            if (jump) {
+              jump.start(false); // Reproducir "jump" una sola vez
+            }
+            // Lógica para el salto
+          }
+        });
+
+        window.addEventListener("keyup", function (event) {
+          keysDown[event.key] = false;
+
+          if (
+            !(keysDown["w"] || keysDown["a"] || keysDown["s"] || keysDown["d"])
+          ) {
+            // Si no se presiona ninguna tecla de movimiento
+            stopAllAnimations();
+            if (idle) {
+              idle.start(true); // Reproducir "idle" en bucle
+            }
+          }
+        });
+
+        engine.runRenderLoop(function () {
+          scene.render();
+        });
+
+        window.addEventListener("resize", function () {
+          engine.resize();
+        });
+      }
+    );
+
     ///////////////////////////////////////////////////
 
     /*// Verificar colisión con el jugador
