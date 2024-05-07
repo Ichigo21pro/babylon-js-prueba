@@ -40,6 +40,11 @@ const createScene = () => {
   return new Promise((resolve) => {
     //metemos todo lo necesario, entre ello la escena en si con la logica de babylon
     const scene = new BABYLON.Scene(engine);
+    // // Configurar el motor de física para la escena
+    // scene.enablePhysics(
+    //   new BABYLON.Vector3(0, -9.81, 0),
+    //   new BABYLON.CannonJSPlugin()
+    // );
     //
     //////////////////// camara ///////////////////
     //
@@ -48,9 +53,10 @@ const createScene = () => {
       0,
       1,
       10,
-      new BABYLON.Vector3(0, 0, 0),
+      new BABYLON.Vector3(-1.5, 14.5, 21.5),
       scene
     );
+
     camera.setTarget(BABYLON.Vector3.Zero()); // Apunta hacia el centro
     camera.attachControl(canvas, true); // Habilitar control de la cámara
     camera.wheelPrecision = 10;
@@ -344,6 +350,7 @@ const createScene = () => {
         ghost.position = new BABYLON.Vector3(0, 2, 0); // Posición inicial
         ghost.rotation = new BABYLON.Vector3(0, 0, 0); // Rotación inicial
 
+        camera.setTarget(ghost);
         // Reproducir una animación específica
         // control de personaje
         //inicializar idle
@@ -367,7 +374,7 @@ const createScene = () => {
 
           if (walk) {
             stopAllAnimations();
-            walk.start(true); // Reproducir "walk" en bucle
+            walk.start(true, 1, walk.from, walk.to, false); // Reproducir "walk" en bucle
           }
 
           if (keysDown["w"] || keysDown["W"]) {
@@ -404,6 +411,9 @@ const createScene = () => {
               jump.start(false); // Reproducir "jump" una sola vez
             }
             // Lógica para el salto
+          }
+          if (keysDown["c"]) {
+            dance.start(true);
           }
         });
 
