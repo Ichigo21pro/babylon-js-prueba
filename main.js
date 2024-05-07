@@ -361,84 +361,132 @@ const createScene = () => {
             animationGroup.stop();
           });
         }
+        ////////////////////////////////////////////////
 
-        //inicializar idle
-        if (idle) {
-          idle.start(true); // Reproducir en bucle
-        }
+        ///////////////////////////////////////////////
 
-        var moveSpeed = 0.1;
-        // Eventos de teclado para controlar el personaje
-        // Eventos de teclado para controlar el personaje
-        var keysDown = {};
+        // Manejo de teclas
+        const keyStatus = {
+          w: false,
+          s: false,
+          a: false,
+          d: false,
+          space: false,
+          b: false,
+        };
 
-        window.addEventListener("keydown", function (event) {
-          keysDown[event.key] = true;
+        scene.actionManager = new ActionManager(scene);
 
-          if (walk) {
-            stopAllAnimations();
-            walk.start(true, 1, walk.from, walk.to, false); // Reproducir "walk" en bucle
-          }
-
-          if (keysDown["w"] || keysDown["W"]) {
-            // Hacia adelante
-            direction = new BABYLON.Vector3(0, 0, 1); // Dirección hacia adelante
-            ghost.rotation.y = 0; // Orientación hacia atrás
-            ghost.position.addInPlace(direction.scale(-moveSpeed)); // Mover el modelo
-          }
-
-          if (keysDown["a"] || keysDown["A"]) {
-            // Hacia la izquierda
-            direction = new BABYLON.Vector3(-1, 0, 0); // Dirección hacia la izquierda
-            ghost.rotation.y = -Math.PI / 2; // Rotar hacia la derecha
-            ghost.position.addInPlace(direction.scale(-moveSpeed)); // Mover el modelo
-          }
-
-          if (keysDown["s"] || keysDown["S"]) {
-            // Hacia atrás
-            direction = new BABYLON.Vector3(0, 0, -1); // Dirección hacia atrás
-            ghost.rotation.y = -Math.PI; // Orientación hacia adelante
-            ghost.position.addInPlace(direction.scale(-moveSpeed)); // Mover el modelo
-          }
-
-          if (keysDown["d"] || keysDown["D"]) {
-            // Hacia la derecha
-            direction = new BABYLON.Vector3(1, 0, 0); // Dirección hacia la derecha
-            ghost.rotation.y = Math.PI / 2; // Apuntar hacia la izquierda
-            ghost.position.addInPlace(direction.scale(-moveSpeed)); // Mover el modelo
-          }
-          if (keysDown[" "]) {
-            // Saltar
-            stopAllAnimations();
-            if (jump) {
-              jump.start(false); // Reproducir "jump" una sola vez
+        const registerKeyPress = (key) => {
+          return new ExecuteCodeAction(
+            ActionManager.OnKeyDownTrigger,
+            (event) => {
+              const pressedKey = event.sourceEvent.key.toLowerCase();
+              if (pressedKey === key) {
+                keyStatus[key] = true;
+              }
             }
-            // Lógica para el salto
-          }
-          if (keysDown["c"]) {
-            // bailar
-            stopAllAnimations();
-            dance.start(true);
-          }
+          );
+        };
+
+        const registerKeyRelease = (key) => {
+          return new ExecuteCodeAction(
+            ActionManager.OnKeyUpTrigger,
+            (event) => {
+              const releasedKey = event.sourceEvent.key.toLowerCase();
+              if (releasedKey === key) {
+                keyStatus[key] = false;
+              }
+            }
+          );
+        };
+
+        ["w", "s", "a", "d", "space", "b"].forEach((key) => {
+          scene.actionManager.registerAction(registerKeyPress(key));
+          scene.actionManager.registerAction(registerKeyRelease(key));
         });
+        let moving = false;
+        scene.onBeforeRenderObservable.add(() => {
+          moving = false;
 
-        window.addEventListener("keyup", function (event) {
-          keysDown[event.key] = false;
-
+          // Determinar si el jugador está moviéndose
           if (
-            !(keysDown["w"] || keysDown["a"] || keysDown["s"] || keysDown["d"])
+            keyStatus.w ||
+            keyStatus.s ||
+            keyStatus.a ||
+            keyStatus.d ||
+            keyStatus.b ||
+            keyStatus.space
           ) {
-            // Si no se presiona ninguna tecla de movimiento
-            stopAllAnimations();
+            moving = true;
+
+            if (keyStatus.w) {
+              walk.start(
+                true,
+                keyStatus.shift ? 2 : 1,
+                walk.from,
+                walk.to,
+                false
+              );
+              direction = new BABYLON.Vector3(0, 0, 1); // Dirección hacia adelante
+              ghost.rotation.y = 0; // Orientación hacia atrás
+              ghost.position.addInPlace(direction.scale(-0.1)); // Mover el modelo
+            }
+            if (keyStatus.a) {
+              walk.start(
+                true,
+                keyStatus.shift ? 2 : 1,
+                walk.from,
+                walk.to,
+                false
+              );
+              // Hacia la izquierda
+              direction = new BABYLON.Vector3(-1, 0, 0); // Dirección hacia la izquierda
+              ghost.rotation.y = -Math.PI / 2; // Rotar hacia la derecha
+              ghost.position.addInPlace(direction.scale(-0.1)); // Mover el modelo
+            }
+            if (keyStatus.d) {
+              walk.start(
+                true,
+                keyStatus.shift ? 2 : 1,
+                walk.from,
+                walk.to,
+                false
+              );
+              // Hacia la derecha
+              direction = new BABYLON.Vector3(1, 0, 0); // Dirección hacia la derecha
+              ghost.rotation.y = Math.PI / 2; // Apuntar hacia la izquierda
+              ghost.position.addInPlace(direction.scale(-0.1)); // Mover el modelo
+            }
+
+            if (keyStatus.s) {
+              walk.start(
+                true,
+                keyStatus.shift ? 2 : 1,
+                walk.from,
+                walk.to,
+                false
+              );
+              // Hacia atrás
+              direction = new BABYLON.Vector3(0, 0, -1); // Dirección hacia atrás
+              ghost.rotation.y = -Math.PI; // Orientación hacia adelante
+              ghost.position.addInPlace(direction.scale(-0.1)); // Mover el modelo
+            }
+
+            if (keyStatus.b) {
+              dance.start(true, 1, dance.from, dance.to, false);
+            }
+            if (keyStatus.space) {
+              jump.start(false, 1, jump.from, jump.to, false);
+            }
           }
-        });
-
-        engine.runRenderLoop(function () {
-          scene.render();
-        });
-
-        window.addEventListener("resize", function () {
-          engine.resize();
+          // Si no se está moviendo, detener todas las animaciones excepto la de Idle
+          if (!moving) {
+            walk.stop();
+            dance.stop();
+            jump.stop();
+            idle.start(true, 1, idle.from, idle.to, false);
+          }
         });
       }
     );
