@@ -49,6 +49,7 @@ if (typeof CANNON !== "undefined") {
 const createScene = () => {
   return new Promise((resolve) => {
     //metemos todo lo necesario, entre ello la escena en si con la logica de babylon
+    scene.collisionsEnabled = true; // Habilitar colisiones en la escena
 
     // // Configurar el motor de física para la escena
     // scene.enablePhysics(
@@ -115,10 +116,19 @@ const createScene = () => {
       "groundMaterial",
       scene
     );
+    ground.PhysicsImpostor = new BABYLON.PhysicsImpostor(
+      ground,
+      BABYLON.PhysicsImpostor.BoxImpostor, // Tipo de cuerpo físico
+      { mass: 0, restitution: 0.9 }, // Propiedades físicas (masa y rebote)
+      scene
+    );
+    // Asegúrate de que el suelo tiene colisiones
+    ground.checkCollisions = true;
+
     const groundTexture = new BABYLON.Texture(
       "/public/groundTexture/Tiles_04_basecolor.jpg",
       scene
-    ); // Cambia esto por la ruta de tu textura
+    ); // textura
 
     // Ajustes de textura
     groundTexture.uScale = 1200; // Ajustar escala horizontal
@@ -127,6 +137,28 @@ const createScene = () => {
     groundMaterial.diffuseTexture = groundTexture; // Asignar la textura al material
 
     ground.material = groundMaterial; // Asignar el material al piso
+
+    //////////////////////////////////////////////////////////////////
+    //añadimos una esfera con fisicas
+    var sphere = BABYLON.MeshBuilder.CreateSphere(
+      "sphere",
+      { diameter: 2 },
+      scene
+    );
+    sphere.position.y = 10; // Posición inicial para que caiga
+    sphere.position.x = 5; // Posición inicial para que caiga
+    // Asegúrate de que la esfera tiene colisiones
+    sphere.checkCollisions = true;
+
+    // Configurar física para la esfera
+    sphere.physicsImpostor = new BABYLON.PhysicsImpostor(
+      sphere,
+      BABYLON.PhysicsImpostor.SphereImpostor, // Tipo de cuerpo físico
+      { mass: 1, restitution: 0.9 }, // Propiedades físicas (masa y rebote)
+      scene
+    );
+
+    /////////////////////////////////////////////////////////////////
 
     // Cargar el skybox
     const loadSkybox = async () => {
@@ -374,7 +406,11 @@ const createScene = () => {
         ////////////////////////////////////////////////
 
         ///////////////////////////////////////////////
-
+        // collisiones
+        ghost.checkCollisions = true; // Habilitar colisiones para el jugador
+        // Define el elipsoide para las colisiones (aquí usamos un tamaño genérico, ajusta según sea necesario)
+        ghost.ellipsoid = new BABYLON.Vector3(2, 2, 2); // Tamaño del elipsoide
+        ghost.ellipsoidOffset = new BABYLON.Vector3(0, 0, 0); // Posición del elipsoide relativo a la malla
         // Manejo de teclas
         const keyStatus = {
           w: false,
@@ -445,6 +481,7 @@ const createScene = () => {
               direction = new BABYLON.Vector3(0, 0, 1); // Dirección hacia adelante
               ghost.rotation.y = 0; // Orientación hacia atrás
               ghost.position.addInPlace(direction.scale(-walkSpeed)); // Mover el modelo
+              ghost.moveWithCollisions(direction.scale(-walkSpeed));
             }
             if (keyStatus.a) {
               walk.start(
@@ -458,6 +495,7 @@ const createScene = () => {
               direction = new BABYLON.Vector3(-1, 0, 0); // Dirección hacia la izquierda
               ghost.rotation.y = -Math.PI / 2; // Rotar hacia la derecha
               ghost.position.addInPlace(direction.scale(-walkSpeed)); // Mover el modelo
+              ghost.moveWithCollisions(direction.scale(-walkSpeed));
             }
             if (keyStatus.d) {
               walk.start(
@@ -471,6 +509,7 @@ const createScene = () => {
               direction = new BABYLON.Vector3(1, 0, 0); // Dirección hacia la derecha
               ghost.rotation.y = Math.PI / 2; // Apuntar hacia la izquierda
               ghost.position.addInPlace(direction.scale(-walkSpeed)); // Mover el modelo
+              ghost.moveWithCollisions(direction.scale(-walkSpeed));
             }
 
             if (keyStatus.s) {
@@ -485,6 +524,7 @@ const createScene = () => {
               direction = new BABYLON.Vector3(0, 0, -1); // Dirección hacia atrás
               ghost.rotation.y = -Math.PI; // Orientación hacia adelante
               ghost.position.addInPlace(direction.scale(-walkSpeed)); // Mover el modelo
+              ghost.moveWithCollisions(direction.scale(-walkSpeed));
             }
 
             if (keyStatus.b) {
@@ -497,12 +537,14 @@ const createScene = () => {
             direction = new BABYLON.Vector3(0, 1, 0); // Dirección hacia adelante
             ghost.rotation.y = 0; // Orientación hacia atrás
             ghost.position.addInPlace(direction.scale(flySpeed)); // Mover el modelo
+            ghost.moveWithCollisions(direction.scale(flySpeed));
           }
 
           if (keyStatus.shift || ghost.position.y >= 10) {
             direction = new BABYLON.Vector3(0, 1, 0); // Dirección hacia adelante
             ghost.rotation.y = 0; // Orientación hacia atrás
             ghost.position.addInPlace(direction.scale(-flySpeed)); // Mover el modelo
+            ghost.moveWithCollisions(direction.scale(-flySpeed));
             if (!isJumping) {
               jump.start(false, 1, jump.from, jump.to, false);
               isJumping = true;
