@@ -33,13 +33,23 @@ const canvas = document.getElementById("renderCanvas");
 //
 // creamos la engine ("cabeza") del proyecto
 const engine = new BABYLON.Engine(canvas);
+const scene = new BABYLON.Scene(engine);
 //
+// Comprueba que Cannon.js está cargado antes de configurar el plugin de física
+if (typeof CANNON !== "undefined") {
+  // Configura el motor de física
+  var gravityVector = new BABYLON.Vector3(0, -9.81, 0); // Vector de gravedad
+  var physicsPlugin = new BABYLON.CannonJSPlugin(); // Usa Cannon.js
+  scene.enablePhysics(gravityVector, physicsPlugin);
+} else {
+  console.error("Cannon.js no está definido.");
+}
 ///////////////////////////////////////////// SCENE ////////////////////////////////////////////
 //creamos la escena
 const createScene = () => {
   return new Promise((resolve) => {
     //metemos todo lo necesario, entre ello la escena en si con la logica de babylon
-    const scene = new BABYLON.Scene(engine);
+
     // // Configurar el motor de física para la escena
     // scene.enablePhysics(
     //   new BABYLON.Vector3(0, -9.81, 0),
@@ -407,6 +417,8 @@ const createScene = () => {
           scene.actionManager.registerAction(registerKeyRelease(key));
         });
         let moving = false;
+        var flySpeed = 0.4;
+        var walkSpeed = 0.4;
         scene.onBeforeRenderObservable.add(() => {
           moving = false;
 
@@ -432,7 +444,7 @@ const createScene = () => {
               );
               direction = new BABYLON.Vector3(0, 0, 1); // Dirección hacia adelante
               ghost.rotation.y = 0; // Orientación hacia atrás
-              ghost.position.addInPlace(direction.scale(-0.1)); // Mover el modelo
+              ghost.position.addInPlace(direction.scale(-walkSpeed)); // Mover el modelo
             }
             if (keyStatus.a) {
               walk.start(
@@ -445,7 +457,7 @@ const createScene = () => {
               // Hacia la izquierda
               direction = new BABYLON.Vector3(-1, 0, 0); // Dirección hacia la izquierda
               ghost.rotation.y = -Math.PI / 2; // Rotar hacia la derecha
-              ghost.position.addInPlace(direction.scale(-0.1)); // Mover el modelo
+              ghost.position.addInPlace(direction.scale(-walkSpeed)); // Mover el modelo
             }
             if (keyStatus.d) {
               walk.start(
@@ -458,7 +470,7 @@ const createScene = () => {
               // Hacia la derecha
               direction = new BABYLON.Vector3(1, 0, 0); // Dirección hacia la derecha
               ghost.rotation.y = Math.PI / 2; // Apuntar hacia la izquierda
-              ghost.position.addInPlace(direction.scale(-0.1)); // Mover el modelo
+              ghost.position.addInPlace(direction.scale(-walkSpeed)); // Mover el modelo
             }
 
             if (keyStatus.s) {
@@ -472,32 +484,31 @@ const createScene = () => {
               // Hacia atrás
               direction = new BABYLON.Vector3(0, 0, -1); // Dirección hacia atrás
               ghost.rotation.y = -Math.PI; // Orientación hacia adelante
-              ghost.position.addInPlace(direction.scale(-0.1)); // Mover el modelo
+              ghost.position.addInPlace(direction.scale(-walkSpeed)); // Mover el modelo
             }
 
             if (keyStatus.b) {
               dance.start(true, 1, dance.from, dance.to, false);
             }
           }
-
-          if (keyStatus[" "]) {
-            console.log("Salto");
-
+          //if (ghost.position.y <= 0 || ghost.position.y <= 0) {}
+          if (keyStatus[" "] || ghost.position.y <= 1) {
+            jump.start(false, 1, jump.from, jump.to, false);
             direction = new BABYLON.Vector3(0, 1, 0); // Dirección hacia adelante
             ghost.rotation.y = 0; // Orientación hacia atrás
-            ghost.position.addInPlace(direction.scale(0.1)); // Mover el modelo
+            ghost.position.addInPlace(direction.scale(flySpeed)); // Mover el modelo
+          }
+
+          if (keyStatus.shift || ghost.position.y >= 10) {
+            direction = new BABYLON.Vector3(0, 1, 0); // Dirección hacia adelante
+            ghost.rotation.y = 0; // Orientación hacia atrás
+            ghost.position.addInPlace(direction.scale(-flySpeed)); // Mover el modelo
             if (!isJumping) {
               jump.start(false, 1, jump.from, jump.to, false);
               isJumping = true;
             }
           } else {
             isJumping = false;
-          }
-          if (keyStatus.shift) {
-            jump.start(false, 1, jump.from, jump.to, false);
-            direction = new BABYLON.Vector3(0, 1, 0); // Dirección hacia adelante
-            ghost.rotation.y = 0; // Orientación hacia atrás
-            ghost.position.addInPlace(direction.scale(-0.1)); // Mover el modelo
           }
           // Si no se está moviendo, detener todas las animaciones excepto la de Idle
           if (!moving) {
